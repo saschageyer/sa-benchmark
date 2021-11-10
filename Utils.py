@@ -50,7 +50,7 @@ def reduce_mem_usage(name, df):
 # ==================================================================================
 #  Parquet Caching Utility 
 # ==================================================================================
-def parquet_caching(parquet_name, callback, path='../cache/'):
+def parquet_caching(parquet_name, callback, path='./cache/'):
     '''
     Read parquet from cache, if not found, create it and write it gzipped to disk
     Args:
