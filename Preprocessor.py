@@ -7,12 +7,15 @@ import Utils
 
 class Preprocessor:
     
-    def __init__(self, data):
+    def __init__(self, name, df, text_feature, label):
         '''
             Class used for text preprocessing
             If you don't have spaCy installed: https://spacy.io/usage
         '''
-        self.messy_texts = data
+        self.name = name
+        self.df = df
+        self.text_feature = text_feature
+        self.messy_texts = df[text_feature]
         self.nlp = spacy.load('en_core_web_sm')
         self.stopwords = self.nlp.Defaults.stop_words
         self.regex = {
@@ -33,14 +36,14 @@ class Preprocessor:
         }
 
         
-    def run(self, data):
+    def run(self):
         '''
             If available, read preprocessed.parquet.gzip from cache
             Ohterwise create preprocessed.parquet.gzip and write it to cache
         '''
         output = Utils.parquet_caching(
-            parquet_name = "preprocessed",
-            callback = self.pass_nlp_pipelinee
+            parquet_name = self.name + "_preprocessed",
+            callback = self.run_nlp_pipeline
         )
         return output
         
@@ -54,25 +57,28 @@ class Preprocessor:
         doc = self.nlp(text)
         return ' '.join(token.lemma_ for token in doc if token.lemma_ != '-PRON-' and token.lemma_ not in self.stopwords)
 
-    def pass_nlp_pipelinee(self):
-        print('passing nlp pipeline...!')
 
-    def pass_nlp_pipeline(self):
+    def run_nlp_pipeline(self):
         '''
             To generate a corpus of lemmatized documents we feed our text data
-            through a nlp pipeline that applies our regular expressions, performes 
-            lemmatization and removes stopwords.
+            through a nlp pipeline that performes lemmatization, removes stopwords
+            and applies our regular expressions. 
         '''
-        lemmatized_texts = []
+        processed_texts = []
 
         for messy_text in self.messy_texts:
 
-            text = self.regex['html'].sub(' ', messy_text)
+            text = self.lemmatize_and_remove_stopwords(messy_text.lower())
+            text = self.regex['html'].sub(' ', text)
             text = self.regex['non_alpha'].sub(' ', text)
             text = self.regex['camel_case_space'].sub(r'\1 \2', text)
             text = self.regex['single_char'].sub(' ', text)
             text = self.regex['multi_space'].sub(' ', text)
-            text = self.lemmatize_and_remove_stopwords(text.lower())
-            lemmatized_texts.append(text)
+            text = text.strip()
 
-        return lemmatized_texts
+            processed_texts.append(text)
+        
+        processed_df = self.df.copy()
+        processed_df[self.text_feature] = processed_texts
+
+        return processed_df
