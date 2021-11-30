@@ -15,6 +15,7 @@ class Preprocessor:
         self.name = name
         self.df = df
         self.text_feature = text_feature
+        self.label = label
         self.messy_texts = df[text_feature]
         self.nlp = spacy.load('en_core_web_sm')
         self.stopwords = self.nlp.Defaults.stop_words
@@ -56,7 +57,11 @@ class Preprocessor:
         '''
         doc = self.nlp(text)
         return ' '.join(token.lemma_ for token in doc if token.lemma_ != '-PRON-' and token.lemma_ not in self.stopwords)
-
+    
+    
+    def get_factorized_labels(self):
+        codes, uniques = self.df[self.label].factorize()
+        return codes
 
     def run_nlp_pipeline(self):
         '''
@@ -80,5 +85,6 @@ class Preprocessor:
         
         processed_df = self.df.copy()
         processed_df[self.text_feature] = processed_texts
+        processed_df[self.label] = self.get_factorized_labels()
 
         return processed_df
