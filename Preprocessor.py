@@ -7,7 +7,7 @@ import Utils
 
 class Preprocessor:
     
-    def __init__(self, name, df, text_feature, label):
+    def __init__(self, name, df, text_feature, target):
         '''
             Class used for text preprocessing
             If you don't have spaCy installed: https://spacy.io/usage
@@ -15,7 +15,7 @@ class Preprocessor:
         self.name = name
         self.df = df
         self.text_feature = text_feature
-        self.label = label
+        self.target = target
         self.messy_texts = df[text_feature]
         self.nlp = spacy.load('en_core_web_sm')
         self.stopwords = self.nlp.Defaults.stop_words
@@ -59,8 +59,8 @@ class Preprocessor:
         return ' '.join(token.lemma_ for token in doc if token.lemma_ != '-PRON-' and token.lemma_ not in self.stopwords)
     
     
-    def get_factorized_labels(self):
-        codes, uniques = self.df[self.label].factorize()
+    def get_factorized_targets(self):
+        codes, uniques = self.df[self.target].factorize()
         return codes
 
     def run_nlp_pipeline(self):
@@ -85,6 +85,6 @@ class Preprocessor:
         
         processed_df = self.df.copy()
         processed_df[self.text_feature] = processed_texts
-        processed_df[self.label] = self.get_factorized_labels()
+        processed_df[self.target] = self.get_factorized_targets()
 
         return processed_df
