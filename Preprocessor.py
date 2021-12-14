@@ -3,11 +3,12 @@ import numpy as np
 import pandas as pd
 import spacy
 import Utils
+from sklearn.model_selection import train_test_split
 
 
 class Preprocessor:
     
-    def __init__(self, name, df, cache=True):
+    def __init__(self, name, df, cache=True, test_size=0.3, random_state=42):
         '''
             Class used for text preprocessing
             If you don't have spaCy installed: https://spacy.io/usage
@@ -15,6 +16,8 @@ class Preprocessor:
         self.name = name
         self.df = df
         self.cache = cache
+        self.test_size = test_size
+        self.random_state = random_state
         self.messy_texts = df['text']
         self.nlp = spacy.load('en_core_web_sm')
         self.stopwords = self.nlp.Defaults.stop_words
@@ -120,3 +123,16 @@ class Preprocessor:
         processed_df['sentiment'] = self.get_factorized_sentiments()
 
         return processed_df
+    
+    
+    def split(self, Xy):        
+        X_train, X_test, y_train, y_test = train_test_split(
+            Xy['text'], Xy['sentiment'], test_size = self.test_size, random_state = self.random_state
+        )
+        train_test_sets = {
+            "X_train": X_train,
+            "X_test": X_test,
+            "y_train": y_train,
+            "y_test": y_test,
+        }
+        return train_test_sets
