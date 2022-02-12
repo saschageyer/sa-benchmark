@@ -13,7 +13,7 @@ class LogisticRegression:
     def __init__(self, ngram_range=(1,3), max_iter=100, random_state=42):
         self.ngram_range = ngram_range
         self.random_state = random_state
-        self.model = LogisticRegressionSklearn(max_iter=max_iter, random_state=random_state)
+        self.model = LogisticRegressionSklearn(max_iter=max_iter, random_state=random_state,solver='liblinear')
         
     def get_tfidf_features(self, X_train, X_test):
         vectorizer = TfidfVectorizer(ngram_range=self.ngram_range)
